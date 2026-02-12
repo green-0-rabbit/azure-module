@@ -42,7 +42,7 @@ jobs:
           modules="${{ steps.changed-modules.outputs.all_changed_files }}"
 
           if [[ -n "$modules" ]]; then
-            matrix="$(printf '%s\n' "$modules" | sed '/^$/d' | jq -R . | jq -s '{ include: map({ env: . }) }')"
+            matrix="$(printf '%s\n' "$modules" | sed '/^$/d' | jq -R . | jq -cs '{ include: map({ env: . }) }')"
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
           else
             matrix='{"include":[]}'
