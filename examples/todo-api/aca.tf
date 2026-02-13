@@ -50,7 +50,7 @@ module "todo_app_api" {
     containers = [
       {
         name   = "todo-app-api"
-        image  = "${local.acr_login_server}/todo-app-api:latest"
+        image  = "humaapi0registry/todo-app-api:latest"
         cpu    = 0.5
         memory = "1Gi"
         env = [
@@ -77,7 +77,7 @@ module "todo_app_api" {
           },
           {
             name  = "DATABASE_USERNAME"
-            value = azurerm_user_assigned_identity.containerapp.name
+            value = module.todo_app_api.identity_name
           },
           # Storage Configuration (Managed Identity)
           {
@@ -90,7 +90,7 @@ module "todo_app_api" {
           },
           {
             name  = "AZURE_CLIENT_ID"
-            value = azurerm_user_assigned_identity.containerapp.client_id
+            value = module.todo_app_api.identity_client_id
           },
           # AI Foundry Configuration (Managed Identity)
           {

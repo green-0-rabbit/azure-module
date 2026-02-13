@@ -8,7 +8,7 @@ env = "dev"
 admin_username = "bastionadmin"
 
 #### ACR
-acr_name = "devinfraacr"
+acr_name = "devtodoapiacr"
 
 #### Private DNS zone
 private_dns_zone_name = "dev-example.io"
@@ -100,6 +100,18 @@ spoke_vnet_subnets = {
   }
   MainSubnet = {
     subnet_address_prefix = ["10.2.1.0/24"]
+    nsg_inbound_rules = {
+      "Allow-RDP-From-MyIP" = {
+        priority                   = 120
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "3389"
+        source_address_prefix      = "62.35.66.142/32"
+        destination_address_prefix = "*"
+      }
+    }
   }
   AzureBastionSubnet = {
     subnet_address_prefix = ["10.2.3.0/26"]
@@ -112,5 +124,5 @@ aca_private_endpoint_ip = "10.2.5.10"
 # Windows DevBox
 enable_windows_devbox               = true
 windows_devbox_vm_size              = "Standard_D2s_v3"
-windows_devbox_custom_image_id      = "/subscriptions/64aff275-5209-47fd-88a0-f127dfab04b8/resourceGroups/dev-main-rg/providers/Microsoft.Compute/galleries/dev_devbox_gallery_example/images/windevbox/versions/0.0.3"
+windows_devbox_custom_image_id      = "/communityGalleries/sbckag-03a467c4-f8e6-470f-a19a-0b1f72763fd6/images/windevbox/versions/0.0.3"
 windows_devbox_enable_wsl_bootstrap = true
