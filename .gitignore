@@ -8,6 +8,7 @@ override.tf.json
 .terraform/
 .terraform.lock.hcl
 .terraform.lock.hcl.*
+.terraform.tfstate.lock.info
 .terraform/local/
 terraform.tfstate
 terraform.tfstate.*
