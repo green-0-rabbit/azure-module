@@ -8,8 +8,7 @@ env = "dev"
 admin_username = "bastionadmin"
 
 #### ACR
-acr_name                = "devinfraacrexample"
-acr_resource_group_name = "dev-main-rg"
+acr_name = "devinfraacr"
 
 #### Private DNS zone
 private_dns_zone_name = "dev-example.io"

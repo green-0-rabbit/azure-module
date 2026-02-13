@@ -98,11 +98,6 @@ variable "acr_name" {
   description = "Name of the Azure Container Registry."
 }
 
-variable "acr_resource_group_name" {
-  type        = string
-  description = "Resource group containing the Azure Container Registry."
-}
-
 # ─── Key Vault ────────────────────────────────────────────────────────────────
 
 variable "key_vault_name" {

@@ -1,5 +1,5 @@
 locals {
-  acr_login_server = data.azurerm_container_registry.acr.login_server
+  acr_login_server = module.acr.login_server
 }
 
 module "todo_app_api" {
@@ -17,7 +17,7 @@ module "todo_app_api" {
 
   acr_config = {
     registry_fqdn          = local.acr_login_server
-    acr_id                 = data.azurerm_container_registry.acr.id
+    acr_id                 = module.acr.id
     create_role_assignment = true
   }
 

@@ -1,6 +1,6 @@
 # Path to the .env file and the prompt helper
 env_file := "examples/.env"
-setup_script := "devbox/scripts/setup-env.sh"
+setup_script := "./scripts/setup-env.sh"
 
 # ─── Terraform (modules) ─────────────────────────────────────────────────────
 

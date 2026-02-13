@@ -8,6 +8,8 @@ module "container_app_environment" {
   infrastructure_subnet_id           = module.vnet_spoke.subnet_ids["ACASubnet"]
   infrastructure_resource_group_name = "aca-private-${var.env}-rg"
 
+  logs_destination = "none"
+
   workload_profile = {
     name                  = "Consumption"
     workload_profile_type = "Consumption"
