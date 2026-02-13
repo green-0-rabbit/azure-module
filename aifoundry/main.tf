@@ -33,7 +33,7 @@ resource "azapi_resource" "ai_foundry" {
       # API properties
       apiProperties          = {}
       allowProjectManagement = true
-      customSubDomainName    = "sbx-aif-${local.resource_name}"
+      customSubDomainName    = "aif-${local.resource_name}"
 
       # Network-related controls (simplified without VNet injection)
       publicNetworkAccess = var.public_network_access_enabled ? "Enabled" : "Disabled"

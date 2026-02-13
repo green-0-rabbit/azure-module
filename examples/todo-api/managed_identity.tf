@@ -1,0 +1,23 @@
+resource "azurerm_user_assigned_identity" "containerapp" {
+  location            = azurerm_resource_group.rg.location
+  name                = "acami-${var.env}"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_role_assignment" "kv_secrets_user" {
+  scope                = module.keyvault.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
+}
+
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  scope                = module.storage.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
+}
+
+resource "azurerm_role_assignment" "openai_user" {
+  scope                = module.ai_foundry.ai_foundry_id
+  role_definition_name = "Cognitive Services OpenAI User"
+  principal_id         = azurerm_user_assigned_identity.containerapp.principal_id
+}

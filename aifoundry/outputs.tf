@@ -10,7 +10,7 @@ output "ai_foundry_name" {
 
 output "openai_endpoint" {
   description = "OpenAI endpoint for the AI Foundry account."
-  value       = "https://sbx-aif-${local.resource_name}.openai.azure.com"
+  value       = "https://aif-${local.resource_name}.openai.azure.com"
 }
 
 output "primary_access_key" {

@@ -11,3 +11,6 @@ override.tf.json
 terraform.tfstate
 terraform.tfstate.*
 *.tfplan
+
+# Secrets
+.env
