@@ -27,7 +27,7 @@ resource "azurerm_private_dns_zone" "blob" {
 
 # Private DNS zone for PostgreSQL Flexible Server
 resource "azurerm_private_dns_zone" "postgres" {
-  name                = "${var.project}.postgres.database.azure.com"
+  name                = "privatelink.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.rg.name
 }
 
