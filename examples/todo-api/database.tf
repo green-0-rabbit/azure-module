@@ -40,8 +40,8 @@ module "postgres" {
 resource "azurerm_postgresql_flexible_server_active_directory_administrator" "aad_admin" {
   server_name         = module.postgres.server_name
   resource_group_name = azurerm_resource_group.rg.name
-  principal_name      = azurerm_user_assigned_identity.containerapp.name
-  object_id           = azurerm_user_assigned_identity.containerapp.principal_id
+  principal_name      = module.todo_app_api.identity_name
+  object_id           = module.todo_app_api.principal_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
   principal_type      = "ServicePrincipal"
 }

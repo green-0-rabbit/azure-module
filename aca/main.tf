@@ -170,8 +170,8 @@ resource "azurerm_container_app_custom_domain" "custom_domain" {
 
   container_app_id                         = azurerm_container_app.app.id
   name                                     = var.custom_domain.name
-  certificate_binding_type                 = var.custom_domain.certificate_binding_type
-  container_app_environment_certificate_id = var.custom_domain.certificate_id
+  certificate_binding_type                 = local.custom_domain_binding_type
+  container_app_environment_certificate_id = local.custom_domain_binding_type == "SniEnabled" ? local.custom_domain_certificate_id : null
 }
 
 resource "azapi_resource" "auth_config" {

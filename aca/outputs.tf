@@ -6,3 +6,13 @@ output "principal_id" {
   value       = azurerm_user_assigned_identity.aca_identity.principal_id
   description = "The Principal ID of the module-managed User Assigned Identity."
 }
+
+output "identity_name" {
+  value       = azurerm_user_assigned_identity.aca_identity.name
+  description = "The name of the module-managed User Assigned Identity."
+}
+
+output "identity_client_id" {
+  value       = azurerm_user_assigned_identity.aca_identity.client_id
+  description = "The client ID of the module-managed User Assigned Identity."
+}
