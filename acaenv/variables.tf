@@ -9,8 +9,8 @@ variable "location" {
   type        = string
   description = "Azure region for the environment (must be Switzerland North/West)."
   validation {
-    condition     = contains(["switzerlandnorth", "switzerlandwest", "eastus", "westeurope"], var.location)
-    error_message = "location must be one of: switzerlandnorth, switzerlandwest, eastus, westeurope."
+    condition     = contains(["switzerlandnorth", "switzerlandwest", "eastus", "westeurope", "northeurope"], var.location)
+    error_message = "location must be one of: switzerlandnorth, switzerlandwest, eastus, westeurope, northeurope."
   }
 }
 
