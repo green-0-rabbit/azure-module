@@ -13,7 +13,7 @@ resource "azapi_resource_action" "purge_ai_foundry" {
 resource "azapi_resource" "ai_foundry" {
   type      = "Microsoft.CognitiveServices/accounts@2025-09-01"
   name      = "aif-${local.resource_name}"
-  parent_id = data.azurerm_resource_group.target.id
+  parent_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.resource_group_name}"
   location  = var.location
   identity {
     type = "SystemAssigned"
