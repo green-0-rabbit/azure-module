@@ -39,10 +39,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          modules="${{ steps.changed-modules.outputs.all_changed_files }}"
+          raw_modules="${{ steps.changed-modules.outputs.all_changed_files }}"
 
-          if [[ -n "$modules" ]]; then
-            matrix="$(printf '%s\n' "$modules" | sed '/^$/d' | jq -R . | jq -cs '{ include: map({ env: . }) }')"
+          mapfile -t modules < <(
+            printf '%s' "$raw_modules" \
+              | sed -e 's/\\n/\n/g' -e 's/,/\n/g' -e 's/[[:space:]]\+/\n/g' \
+              | sed '/^$/d' \
+              | awk '!seen[$0]++' \
+              | while read -r module; do
+                  [[ -d "$module" ]] && echo "$module"
+                done
+          )
+
+          if (( ${#modules[@]} > 0 )); then
+            matrix="$(printf '%s\n' "${modules[@]}" | jq -R . | jq -cs '{ include: map({ env: . }) }')"
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
           else
             matrix='{"include":[]}'

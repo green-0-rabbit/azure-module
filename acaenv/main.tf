@@ -10,7 +10,7 @@ resource "azurerm_container_app_environment" "this" {
 
   identity { type = "SystemAssigned" }
 
-  logs_destination = var.logs_destination
+  logs_destination = var.logs_destination == "none" ? "" : var.logs_destination
 
   workload_profile {
     name                  = var.workload_profile.name
