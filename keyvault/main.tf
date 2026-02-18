@@ -9,6 +9,16 @@ resource "azurerm_key_vault" "this" {
   purge_protection_enabled      = var.purge_protection_enabled
   soft_delete_retention_days    = var.soft_delete_retention_days
   tags                          = var.tags
+
+  dynamic "network_acls" {
+    for_each = var.network_acls == null ? [] : [var.network_acls]
+    content {
+      default_action             = network_acls.value.default_action
+      bypass                     = network_acls.value.bypass
+      ip_rules                   = network_acls.value.ip_rules
+      virtual_network_subnet_ids = network_acls.value.virtual_network_subnet_ids
+    }
+  }
 }
 
 resource "azurerm_role_assignment" "kv_admin" {

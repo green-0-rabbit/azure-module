@@ -35,6 +35,34 @@ variable "public_network_access_enabled" {
   default     = false
 }
 
+variable "network_acls" {
+  description = "Key Vault firewall rules configuration"
+  type = object({
+    default_action             = string
+    bypass                     = string
+    ip_rules                   = optional(list(string), [])
+    virtual_network_subnet_ids = optional(list(string), [])
+  })
+  default  = null
+  nullable = true
+
+  validation {
+    condition = var.network_acls == null || contains([
+      "Allow",
+      "Deny"
+    ], var.network_acls.default_action)
+    error_message = "network_acls.default_action must be either Allow or Deny"
+  }
+
+  validation {
+    condition = var.network_acls == null || contains([
+      "AzureServices",
+      "None"
+    ], var.network_acls.bypass)
+    error_message = "network_acls.bypass must be either AzureServices or None"
+  }
+}
+
 variable "rbac_authorization_enabled" {
   description = "Enable RBAC authorization for the Key Vault"
   type        = bool
