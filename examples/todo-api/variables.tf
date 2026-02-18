@@ -105,6 +105,12 @@ variable "key_vault_name" {
   description = "Name of the Azure Key Vault."
 }
 
+variable "key_vault_allowed_ip_ranges" {
+  type        = list(string)
+  default     = []
+  description = "Allowed public CIDR ranges for Key Vault firewall (populate from automated Azure DevOps hosted-agent IP range updates)."
+}
+
 # ─── Storage Account ──────────────────────────────────────────────────────────
 
 variable "storage_account_name" {

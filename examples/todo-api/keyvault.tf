@@ -9,7 +9,14 @@ module "keyvault" {
   rbac_authorization_enabled    = true
   purge_protection_enabled      = false
   soft_delete_retention_days    = 7
-  public_network_access_enabled = false
+  public_network_access_enabled = true
+
+  network_acls = {
+    default_action             = "Deny"
+    bypass                     = "None"
+    ip_rules                   = var.key_vault_allowed_ip_ranges
+    virtual_network_subnet_ids = []
+  }
 
   # Private endpoint via module built-in support
   networking = {
