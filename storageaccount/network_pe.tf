@@ -31,3 +31,37 @@ resource "azurerm_private_endpoint" "storageaccount_pe" {
     }
   }
 }
+
+resource "azurerm_private_endpoint" "storageaccount_queue_pe" {
+  count = local.enable_queue_private_endpoint ? 1 : 0
+
+  name                = "${local.pep_prefix}-queue-pe-${local.resource_name}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = local.networking.subnet_id
+
+  private_service_connection {
+    name                           = "${local.pep_prefix}-queue-pl-${local.resource_name}"
+    private_connection_resource_id = azurerm_storage_account.this.id
+    is_manual_connection           = false
+    subresource_names              = [local.queue_pep_subresource_name]
+  }
+
+  dynamic "ip_configuration" {
+    for_each = local.networking.static_ip_address_allocation == true ? toset([1]) : toset([])
+    content {
+      name               = local.queue_pep_ip_config_name
+      private_ip_address = local.networking.queue_pe_ip
+      subresource_name   = local.queue_pep_subresource_name
+      member_name        = local.queue_pep_subresource_name
+    }
+  }
+
+  dynamic "private_dns_zone_group" {
+    for_each = local.dns.register_pe_to_dns ? [1] : []
+    content {
+      name                 = "${local.pep_prefix}-queue-pe-dns-${local.resource_name}"
+      private_dns_zone_ids = compact([local.dns.queue_dns_id])
+    }
+  }
+}
