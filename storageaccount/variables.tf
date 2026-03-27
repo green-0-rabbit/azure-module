@@ -82,6 +82,7 @@ variable "networking" {
     subnet_id                    = string
     static_ip_address_allocation = optional(bool, false)
     pe_ip                        = optional(string)
+    queue_pe_ip                  = optional(string)
   })
   default  = null
   nullable = true
@@ -91,9 +92,10 @@ variable "networking" {
       (
         var.networking.static_ip_address_allocation
         && can(cidrnetmask("${var.networking.pe_ip}/32"))
+        && can(cidrnetmask("${var.networking.queue_pe_ip}/32"))
       ) || !var.networking.static_ip_address_allocation
     )
-    error_message = "When static IP allocation is enabled, networking.pe_ip must be a valid IPv4 address"
+    error_message = "When static IP allocation is enabled, networking.pe_ip and networking.queue_pe_ip must be valid IPv4 addresses"
   }
 }
 
@@ -102,6 +104,7 @@ variable "dns" {
   type = object({
     register_pe_to_dns = optional(bool, false)
     dns_id             = optional(string)
+    queue_dns_id       = optional(string)
   })
   default  = null
   nullable = true
