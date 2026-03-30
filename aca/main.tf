@@ -45,8 +45,10 @@ resource "azurerm_container_app" "app" {
   dynamic "registry" {
     for_each = var.acr_config == null ? [] : [var.acr_config]
     content {
-      server   = registry.value.registry_fqdn
-      identity = azurerm_user_assigned_identity.aca_identity.id
+      server               = registry.value.registry_fqdn
+      identity             = try(registry.value.use_managed_identity, true) ? azurerm_user_assigned_identity.aca_identity.id : null
+      username             = try(registry.value.use_managed_identity, true) ? null : try(registry.value.username, null)
+      password_secret_name = try(registry.value.use_managed_identity, true) ? null : try(registry.value.password_secret_name, null)
     }
   }
 

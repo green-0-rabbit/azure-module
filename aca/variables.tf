@@ -142,8 +142,11 @@ variable "acr_config" {
   description = "Configuration for the Azure Container Registry, including its FQDN, Resource ID, and whether to create AcrPull role assignment."
   type = object({
     registry_fqdn          = string
-    acr_id                 = string
+    acr_id                 = optional(string)
     create_role_assignment = optional(bool, true)
+    use_managed_identity   = optional(bool, true)
+    username               = optional(string)
+    password_secret_name   = optional(string)
   })
   default = null
 }
