@@ -4,4 +4,10 @@ resource "azurerm_private_dns_zone" "aca" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
+resource "azurerm_private_dns_zone" "custom_domain" {
+  count               = var.private_dns_zone_name != "" ? 1 : 0
+  name                = var.private_dns_zone_name
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
 

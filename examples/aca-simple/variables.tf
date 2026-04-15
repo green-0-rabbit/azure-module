@@ -39,6 +39,26 @@ variable "private_dns_zone_name" {
   default     = ""
 }
 
+variable "route_custom_domain_name" {
+  type        = string
+  description = "Optional environment route custom domain FQDN (for example, approuter-preview.internal.example.com)."
+  default     = ""
+}
+
+variable "route_custom_domain_certificate_blob_base64" {
+  type        = string
+  description = "Base64 encoded PFX certificate for the route custom domain."
+  default     = ""
+  sensitive   = true
+}
+
+variable "route_custom_domain_certificate_password" {
+  type        = string
+  description = "Password for the route custom domain PFX certificate."
+  default     = ""
+  sensitive   = true
+}
+
 variable "spoke_vnet_name" {
   description = "The name of the spoke virtual network."
   type        = string

@@ -22,6 +22,21 @@ output "certificate_id" {
   value = var.certificate_config != null ? azurerm_container_app_environment_certificate.this[0].id : null
 }
 
+output "http_route_config_ids" {
+  description = "Environment-level HTTP route config resource IDs keyed by route config name."
+  value       = { for name, config in azapi_resource.http_route_config : name => config.id }
+}
+
+output "http_route_config_names" {
+  description = "Environment-level HTTP route config resource names keyed by route config name."
+  value       = { for name, config in azapi_resource.http_route_config : name => config.name }
+}
+
+output "http_route_config_fqdns" {
+  description = "Environment-level HTTP route config FQDNs keyed by route config name when returned by the Azure API."
+  value       = { for name, config in azapi_resource.http_route_config : name => try(config.output.fqdn, null) }
+}
+
 output "logs_destination" {
   value = var.logs_destination
 }
