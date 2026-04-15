@@ -32,6 +32,23 @@ This repository is module-focused. Terraform operations must be executed through
 - `just tf-init acr`
 - `just tf-validate acr`
 
+## Importing Existing Resources into Terraform State
+
+When a resource already exists in Azure but is missing from Terraform state (for example after provider inconsistency errors), use the `just` import recipes instead of running raw `terraform import` commands.
+
+1. **Load Environment Variables** first:
+   - Development: `glb-var dev`
+
+2. **Use Import Recipes:**
+   - **Development Import:** `just tf-import-ex <example> <resource_address> <resource_id>`
+
+3. **Then Reconcile State:**
+   - Run plan/apply again using the standard commands.
+
+### Examples
+- `glb-var dev && just tf-import-ex aca-simple azurerm_private_endpoint.aca "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Network/privateEndpoints/<name>"`
+
+
 ## Notes
 
 - If initialization is required before validation, run `tf-init` first for the same target.

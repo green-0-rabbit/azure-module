@@ -35,6 +35,11 @@ tf-init-ex example: ensure-env
     terraform -chdir=examples/{{example}} init
 
 [group('examples')]
+@tf-import-ex example address id: ensure-env
+    terraform -chdir=examples/{{example}} import -var-file=dev.tfvars \
+        {{address}} {{id}}
+
+[group('examples')]
 tf-plan-ex example *args: ensure-env
     #!/usr/bin/env bash
     set -euo pipefail
@@ -54,3 +59,29 @@ tf-destroy-ex example *args: ensure-env
     set -euo pipefail
     set -a; source {{env_file}}; set +a
     terraform -chdir=examples/{{example}} destroy -var-file=dev.tfvars {{args}}
+
+[group('ops')]
+vm-exec-example example_dir +command:
+    #!/usr/bin/env bash
+    if [ -z "$TF_VAR_admin_password" ]; then
+        echo "Error: TF_VAR_admin_password is not set. Please run 'glb-var dev' first."
+        exit 1
+    fi
+
+    EXAMPLE_DIR="./examples/{{example_dir}}"
+    if [ ! -d "$EXAMPLE_DIR" ]; then
+        echo "Error: Example directory '$EXAMPLE_DIR' does not exist."
+        exit 1
+    fi
+
+    pushd "$EXAMPLE_DIR" > /dev/null
+    IP=$(terraform output -raw bastion_public_ip)
+    popd > /dev/null
+
+    if [ -z "$IP" ]; then
+        echo "Error: Could not get bastion VM Public IP from '$EXAMPLE_DIR'."
+        exit 1
+    fi
+
+    echo "Running on $IP..."
+    sshpass -p "$TF_VAR_admin_password" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 bastionadmin@$IP "{{command}}"
