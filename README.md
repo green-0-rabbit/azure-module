@@ -142,3 +142,81 @@ Example:
 just tf-init vnet
 just tf-validate vnet
 ```
+
+## ACA Environment Rule-Based Routing
+
+The `acaenv` module supports optional environment-level HTTP route configs through AzAPI using `Microsoft.App/managedEnvironments/httpRouteConfigs@2024-10-02-preview`. This feature is fully opt-in through `http_route_configs`; leaving the input empty creates no additional resources.
+
+Use a map keyed by the route config child resource name so Terraform keeps stable identities:
+
+```hcl
+module "container_app_environment" {
+  source = "git::https://github.com/green-0-rabbit/azure-module.git//acaenv?ref=v1.0.0"
+
+  # existing required inputs omitted for brevity
+
+  http_route_configs = {
+    approuter = {
+      custom_domains = [
+        {
+          name           = "apps.example.com"
+          binding_type   = "SniEnabled"
+          certificate_id = module.container_app_environment.certificate_id
+        }
+      ]
+      rules = [
+        {
+          description = "Frontend traffic"
+          routes = [
+            {
+              match = {
+                prefix = "/frontend"
+              }
+              action = {
+                prefix_rewrite = "/"
+              }
+            }
+          ]
+          targets = [
+            {
+              container_app = "frontend-app"
+            }
+          ]
+        }
+        {
+          description = "API traffic"
+          routes = [
+            {
+              match = {
+                path_separated_prefix = "/api"
+              }
+            }
+          ]
+          targets = [
+            {
+              container_app = "api-app"
+              weight        = 100
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+Notes and limitations:
+
+- Route config names must be 3-63 characters and match `^[a-z][a-z0-9]*$`.
+- `binding_type` supports `Disabled`, `Auto`, and `SniEnabled`. If you omit it, the module follows the existing custom-domain behavior in this repo: `SniEnabled` when `certificate_id` is set, otherwise `Disabled`.
+- `SniEnabled` requires an environment certificate ID. You can reuse `acaenv.certificate_id` or pass an existing environment certificate ID.
+- DNS ownership verification, DNS records, and managed certificate lifecycle are out of scope for this module.
+- Do not bind the same hostname both as an environment-level route custom domain and as an app-level custom domain in the `aca` module.
+- The feature uses a preview ARM API and may drift as Azure changes the contract.
+
+Validation harness:
+
+- `examples/aca-simple` now deploys two container apps and one environment route config.
+- After `just tf-apply-ex aca-simple`, retrieve the route FQDN with `terraform -chdir=examples/aca-simple output -raw route_config_fqdn`.
+- Because the example environment is private, verify routing from the bastion VM or another host in the VNet. For example, after loading env vars with `glb-var dev`, run `just vm-exec-example 'aca-simple' 'curl -I http://$(terraform -chdir=examples/aca-simple output -raw route_config_fqdn)/frontend'` and repeat with `/showcase` or `/sample/hello`.
+- For custom domains, create the required DNS validation records first and ensure the environment certificate already exists before using `SniEnabled`.

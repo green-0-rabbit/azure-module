@@ -66,6 +66,122 @@ variable "certificate_config" {
   default = null
 }
 
+variable "http_route_configs" {
+  description = "Optional environment-level HTTP route configurations keyed by Azure child resource name. Route config names must be 3-63 chars and match ^[a-z][a-z0-9]*$."
+  type = map(object({
+    custom_domains = optional(list(object({
+      name           = string
+      binding_type   = optional(string)
+      certificate_id = optional(string)
+    })), [])
+    rules = list(object({
+      description = optional(string)
+      routes = list(object({
+        match = object({
+          path                  = optional(string)
+          prefix                = optional(string)
+          path_separated_prefix = optional(string)
+          case_sensitive        = optional(bool)
+        })
+        action = optional(object({
+          prefix_rewrite = optional(string)
+        }))
+      }))
+      targets = list(object({
+        container_app = string
+        label         = optional(string)
+        revision      = optional(string)
+        weight        = optional(number)
+      }))
+    }))
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for route_config_name in keys(var.http_route_configs) :
+      length(route_config_name) >= 3
+      && length(route_config_name) <= 63
+      && can(regex("^[a-z][a-z0-9]*$", route_config_name))
+    ])
+    error_message = "http_route_configs keys must be 3-63 characters, start with a lowercase letter, and contain only lowercase letters and numbers."
+  }
+
+  validation {
+    condition = alltrue([
+      for route_config in values(var.http_route_configs) : length(route_config.rules) > 0
+    ])
+    error_message = "Each http_route_configs entry must contain at least one rule."
+  }
+
+  validation {
+    condition = alltrue(flatten([
+      for route_config in values(var.http_route_configs) : [
+        for rule in route_config.rules : length(rule.routes) > 0 && length(rule.targets) > 0
+      ]
+    ]))
+    error_message = "Each HTTP route rule must contain at least one route and at least one target."
+  }
+
+  validation {
+    condition = alltrue(flatten([
+      for route_config in values(var.http_route_configs) : [
+        for rule in route_config.rules : [
+          for route in rule.routes : length(compact([
+            try(route.match.path, null),
+            try(route.match.prefix, null),
+            try(route.match.path_separated_prefix, null),
+          ])) > 0
+        ]
+      ]
+    ]))
+    error_message = "Each HTTP route match must set at least one of match.path, match.prefix, or match.path_separated_prefix."
+  }
+
+  validation {
+    condition = alltrue(flatten([
+      for route_config in values(var.http_route_configs) : [
+        for custom_domain in route_config.custom_domains : (
+          contains([
+            "Auto",
+            "Disabled",
+            "SniEnabled",
+            ], coalesce(
+            try(custom_domain.binding_type, null),
+            try(custom_domain.certificate_id, null) != null ? "SniEnabled" : "Disabled"
+          ))
+          && (
+            coalesce(
+              try(custom_domain.binding_type, null),
+              try(custom_domain.certificate_id, null) != null ? "SniEnabled" : "Disabled"
+            ) != "SniEnabled"
+            || try(custom_domain.certificate_id, null) != null
+            || var.certificate_config != null
+          )
+        )
+      ]
+    ]))
+    error_message = "HTTP route custom domains must use binding_type Disabled, Auto, or SniEnabled, and SniEnabled requires certificate_id (or certificate_config on this module)."
+  }
+
+  validation {
+    condition = alltrue(flatten([
+      for route_config in values(var.http_route_configs) : [
+        for rule in route_config.rules : [
+          for target in rule.targets : (
+            try(target.weight, null) == null ? true : (
+              target.weight >= 0
+              && target.weight <= 100
+              && floor(target.weight) == target.weight
+            )
+          )
+        ]
+      ]
+    ]))
+    error_message = "HTTP route target weights must be whole numbers between 0 and 100."
+  }
+}
+
 variable "logs_destination" {
   type        = string
   description = "Where Container Apps Env sends logs: log-analytics (direct) or azure-monitor (via diagnostic settings) or none."

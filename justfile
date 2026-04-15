@@ -22,9 +22,11 @@ setup_script := "./scripts/setup-env.sh"
 [group('examples')]
 [private]
 @ensure-env:
-    if [ ! -f {{env_file}} ] || ! grep -q '^TF_VAR_admin_password=.' {{env_file}}; then \
-        echo "No TF_VAR_admin_password found in {{env_file}}."; \
-        bash {{setup_script}} {{env_file}}; \
+    if [ -z "$TF_VAR_admin_password" ]; then \
+        if [ ! -f {{env_file}} ] || ! grep -q '^TF_VAR_admin_password=.' {{env_file}}; then \
+            echo "No TF_VAR_admin_password found in {{env_file}} or shell."; \
+            bash {{setup_script}} {{env_file}}; \
+        fi \
     fi
 
 [group('examples')]
@@ -37,6 +39,7 @@ tf-init-ex example: ensure-env
 [group('examples')]
 @tf-import-ex example address id: ensure-env
     terraform -chdir=examples/{{example}} import -var-file=dev.tfvars \
+        -var="subscription_id=${ARM_SUBSCRIPTION_ID}" \
         {{address}} {{id}}
 
 [group('examples')]
@@ -44,21 +47,24 @@ tf-plan-ex example *args: ensure-env
     #!/usr/bin/env bash
     set -euo pipefail
     set -a; source {{env_file}}; set +a
-    terraform -chdir=examples/{{example}} plan -var-file=dev.tfvars {{args}}
+    terraform -chdir=examples/{{example}} plan -var-file=dev.tfvars \
+        -var="subscription_id=${ARM_SUBSCRIPTION_ID}" {{args}}
 
 [group('examples')]
 tf-apply-ex example *args: ensure-env
     #!/usr/bin/env bash
     set -euo pipefail
     set -a; source {{env_file}}; set +a
-    terraform -chdir=examples/{{example}} apply -var-file=dev.tfvars {{args}}
+    terraform -chdir=examples/{{example}} apply -var-file=dev.tfvars \
+        -var="subscription_id=${ARM_SUBSCRIPTION_ID}" {{args}}
 
 [group('examples')]
 tf-destroy-ex example *args: ensure-env
     #!/usr/bin/env bash
     set -euo pipefail
     set -a; source {{env_file}}; set +a
-    terraform -chdir=examples/{{example}} destroy -var-file=dev.tfvars {{args}}
+    terraform -chdir=examples/{{example}} destroy -var-file=dev.tfvars \
+        -var="subscription_id=${ARM_SUBSCRIPTION_ID}" {{args}}
 
 [group('ops')]
 vm-exec-example example_dir +command:

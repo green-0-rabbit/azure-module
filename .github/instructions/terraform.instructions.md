@@ -21,9 +21,12 @@ This repository is module-focused. Terraform operations must be executed through
 
 ## Example Deployment Recipes
 
-- Initialize an example: `just tf-init-ex <example>`
-- Plan an example: `just tf-plan-ex <example>`
-- Apply an example: `just tf-apply-ex <example>`
+1. **Load Environment Variables:** Run `glb-var dev` to load the necessary environment variables.
+
+2. **Run Terraform Commands:**
+   - **Init:** ``just tf-init-ex <example>`(eg aca-simple)`
+   - **Plan:** `just tf-plan-ex <example>`
+   - **Apply:** `just tf-apply-ex <example>`
 
 `<example>` is a directory name under `examples/` (for example: `todo-api`). Plan and apply automatically use `dev.tfvars`. Extra arguments can be appended (e.g. `just tf-plan-ex todo-api -var="admin_password=..."`).
 

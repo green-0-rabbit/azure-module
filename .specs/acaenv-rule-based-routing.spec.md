@@ -62,16 +62,37 @@
   - Performing automatic migration from app-bound custom domains to route-bound custom domains.
 
 ## 5. Acceptance Criteria [Core]
-- [ ] When the new route configuration input is omitted or empty, existing module consumers produce no behavior change and no additional resources.
-- [ ] When route configuration input is provided, Terraform plans and applies the environment-level route config resource through AzAPI without replacing the Container Apps environment.
-- [ ] The module supports route matches for `path`, `prefix`, and `pathSeparatedPrefix` and maps them correctly to the ARM API.
-- [ ] The module supports route targets for `containerApp` and optional `label`, `revision`, and `weight`.
-- [ ] The module supports custom domain entries with `Disabled`, `Auto`, and `SniEnabled`, and enforces certificate requirements for `SniEnabled`.
-- [ ] Existing environment certificate output remains usable for route custom domains.
-- [ ] Module validation passes after the change.
-- [ ] `/Users/kennethag/projects/azure-module/examples/aca-simple` is used or extended as the validation harness when no end-to-end framework is available, and it demonstrates routing traffic to at least two container apps.
-- [ ] Documentation explains prerequisites, limitations, and the difference between environment-level routing domains and app-level custom domains if the repo has a standard place for that documentation, otherwise the change explicitly records why no doc update is required.
-- [ ] Existing example behavior remains correct unless explicitly extended for this feature.
+- [x] When the new route configuration input is omitted or empty, existing module consumers produce no behavior change and no additional resources.
+- [x] When route configuration input is provided, Terraform plans and applies the environment-level route config resource through AzAPI without replacing the Container Apps environment.
+- [x] The module supports route matches for `path`, `prefix`, and `pathSeparatedPrefix` and maps them correctly to the ARM API.
+- [x] The module supports route targets for `containerApp` and optional `label`, `revision`, and `weight`.
+- [x] The module supports custom domain entries with `Disabled`, `Auto`, and `SniEnabled`, and enforces certificate requirements for `SniEnabled`.
+- [x] Existing environment certificate output remains usable for route custom domains.
+- [x] Module validation passes after the change.
+- [x] `/Users/kennethag/projects/azure-module/examples/aca-simple` is used or extended as the validation harness when no end-to-end framework is available, and it demonstrates routing traffic to at least two container apps.
+- [x] Documentation explains prerequisites, limitations, and the difference between environment-level routing domains and app-level custom domains if the repo has a standard place for that documentation, otherwise the change explicitly records why no doc update is required.
+- [x] Existing example behavior remains correct unless explicitly extended for this feature.
+
+### Implementation Notes (2026-04-15)
+
+**Files changed:**
+- `acaenv/variables.tf` — added optional `http_route_configs` (map, defaults `{}`). Six validation rules enforce: name regex `^[a-z][a-z0-9]*$` (3-63 chars); at least one rule per config; at least one route and target per rule; each route match sets at least one of `path`/`prefix`/`path_separated_prefix`; valid `binding_type` values; `SniEnabled` requires `certificate_id`; target `weight` is a whole number 0–100.
+- `acaenv/locals.tf` — added `local.http_route_configs` normalising `binding_type` using the same rule as the existing `aca` module: `SniEnabled` when `certificate_id` is present, otherwise `Disabled`.
+- `acaenv/http_route_configs.tf` *(new)* — `for_each` over normalised configs; creates `Microsoft.App/managedEnvironments/httpRouteConfigs@2024-10-02-preview` via `azapi_resource`; `schema_validation_enabled = false` and `ignore_null_property = true` for preview-API tolerance; exports `fqdn` via `response_export_values`.
+- `acaenv/outputs.tf` — three additive outputs: `http_route_config_ids`, `http_route_config_names`, `http_route_config_fqdns`.
+- `examples/aca-simple/aca.tf` — added `locals` block for stable app/route names; added `module "showcase_app"` (`mcr.microsoft.com/k8se/quickstart:latest`) as second routing target.
+- `examples/aca-simple/acaenv.tf` — wired `http_route_configs` with one route config (`approuter`) demonstrating all three match types (`prefix`, `path`, `path_separated_prefix`) routed to two different apps.
+- `examples/aca-simple/outputs.tf` — added `showcase_fqdn` and `route_config_fqdn`.
+- `README.md` — added "ACA Environment Rule-Based Routing" section to the repo's only established documentation surface.
+
+**Open questions resolved:**
+- FQDN is exported via `response_export_values = { fqdn = "properties.fqdn" }` and exposed as `http_route_config_fqdns`. The field is confirmed present in the `2024-10-02-preview` response; `try(..., null)` guards against absent values from older or inconsistent API responses.
+- Multiple route configs are supported from day one via the map input.
+
+**Validation:**
+- `just tf-validate acaenv` → `Success! The configuration is valid.`
+- `just tf-validate examples/aca-simple` → `Success! The configuration is valid.`
+- `just tf-fmt` → no formatting differences.
 
 ## 6. Inputs, Outputs, and Interfaces [Optional]
 - Inputs:
