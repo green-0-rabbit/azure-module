@@ -1,3 +1,7 @@
+# Every tf-*-ex recipe passes -var="subscription_id=${ARM_SUBSCRIPTION_ID}", so the root module has
+# to declare it or Terraform rejects the value as undeclared. aca-simple already does.
+variable "subscription_id" {}
+
 variable "location" {
   description = "Azure region for deployed resources."
   type        = string
