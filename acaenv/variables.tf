@@ -57,13 +57,28 @@ variable "tags" {
 }
 
 variable "certificate_config" {
-  description = "Configuration for the Container App Environment Certificate"
+  description = <<-EOT
+    Configuration for the Container App Environment Certificate. Supply the certificate either
+    inline (certificate_blob_base64) or from Key Vault (key_vault_secret_id), never both.
+    The Key Vault path reads the secret through the environment's system-assigned identity,
+    which must already hold "Key Vault Secrets User" on the vault. Granting that role is the
+    caller's responsibility; this module does not create the role assignment.
+  EOT
   type = object({
     name                    = string
-    certificate_blob_base64 = string
+    certificate_blob_base64 = optional(string)
     certificate_password    = optional(string, "")
+    key_vault_secret_id     = optional(string)
   })
   default = null
+
+  validation {
+    condition = var.certificate_config == null || (
+      (try(var.certificate_config.certificate_blob_base64, null) != null) !=
+      (try(var.certificate_config.key_vault_secret_id, null) != null)
+    )
+    error_message = "certificate_config must set exactly one of certificate_blob_base64 or key_vault_secret_id."
+  }
 }
 
 variable "http_route_configs" {

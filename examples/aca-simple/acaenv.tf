@@ -35,7 +35,7 @@ module "container_app_environment" {
       custom_domains = (
         var.route_custom_domain_name != ""
         && nonsensitive(var.route_custom_domain_certificate_blob_base64) != ""
-      ) ? [
+        ) ? [
         {
           name         = var.route_custom_domain_name
           binding_type = "SniEnabled"

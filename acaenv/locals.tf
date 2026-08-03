@@ -7,6 +7,10 @@ locals {
   pep_prefix                                 = "acaenv"
   enable_private_endpoint                    = var.networking != null && var.dns != null
 
+  tags = merge({ "ResourceName" = local.resource_name }, var.tags)
+
+  certificate_from_key_vault = var.certificate_config != null && try(var.certificate_config.key_vault_secret_id, null) != null
+
   networking = var.networking != null ? var.networking : {
     subnet_id                    = ""
     static_ip_address_allocation = false
