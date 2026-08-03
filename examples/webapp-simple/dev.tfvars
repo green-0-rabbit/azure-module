@@ -34,8 +34,22 @@ spoke_vnet_subnets = {
     private_link_service_network_policies_enabled = false
   }
 
+  # The bastion's public IP is Standard SKU, which is closed to inbound traffic by default, so
+  # SSH has to be opened explicitly. Same rule aca-simple uses.
   BastionSubnet = {
     subnet_address_prefix = ["10.3.3.0/24"]
+    nsg_inbound_rules = {
+      "Allow-SSH-Trusted" = {
+        priority                   = 200
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "22"
+        source_address_prefixes    = ["0.0.0.0/0"]
+        destination_address_prefix = "*"
+      }
+    }
   }
 }
 

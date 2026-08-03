@@ -8,6 +8,10 @@ module "hello_world" {
     # The ILB environment already keeps this app off the internet. Leaving public access enabled
     # avoids stacking a second, private-endpoint style restriction on top of that isolation.
     public_network_access_enabled = true
+
+    # Required inside an App Service Environment, which rejects this being disabled. Also what
+    # lets the app pull from the ACR over its private endpoint.
+    vnet_image_pull_enabled = true
   }
 
   env                 = var.env

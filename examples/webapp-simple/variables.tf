@@ -65,6 +65,37 @@ variable "spoke_vnet_subnets" {
         actions = optional(list(string))
       }))
     }))
+
+    # These must be declared here even though the vnet module also declares them: Terraform
+    # silently drops object attributes that are not in the declared type, so omitting them makes
+    # any nsg rules in dev.tfvars disappear without an error.
+    nsg_inbound_rules = optional(map(object({
+      priority                   = number
+      direction                  = optional(string, "Inbound")
+      access                     = optional(string, "Allow")
+      protocol                   = optional(string, "Tcp")
+      source_port_range          = optional(string, "*")
+      destination_port_range     = optional(string, "*")
+      destination_port_ranges    = optional(set(string), [])
+      source_address_prefix      = optional(string)
+      source_address_prefixes    = optional(set(string), [])
+      destination_address_prefix = optional(string)
+      description                = optional(string)
+    })), {})
+
+    nsg_outbound_rules = optional(map(object({
+      priority                   = number
+      direction                  = optional(string, "Outbound")
+      access                     = optional(string, "Allow")
+      protocol                   = optional(string, "Tcp")
+      source_port_range          = optional(string, "*")
+      destination_port_range     = optional(string, "*")
+      destination_port_ranges    = optional(set(string), [])
+      source_address_prefix      = optional(string)
+      source_address_prefixes    = optional(set(string), [])
+      destination_address_prefix = optional(string)
+      description                = optional(string)
+    })), {})
   }))
 }
 
