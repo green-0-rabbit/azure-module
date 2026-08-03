@@ -39,6 +39,9 @@ resource "azurerm_container_app_environment_certificate" "this" {
   }
 
   tags = merge(local.tags, { ca-name = lower("acaenv-cert-${local.resource_name}") })
+
+  # The environment identity must be able to read the secret before the certificate is created.
+  depends_on = [azurerm_role_assignment.kv_secret_operator]
 }
 
 # https://learn.microsoft.com/en-us/azure/container-apps/log-options
