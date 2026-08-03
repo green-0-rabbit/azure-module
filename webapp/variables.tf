@@ -11,6 +11,11 @@ variable "app_config" {
     enabled                       = optional(bool, true)
     public_network_access_enabled = optional(bool, false)
     virtual_network_subnet_id     = optional(string)
+
+    # Pull container images over the virtual network. Must be true when the plan sits inside an
+    # App Service Environment, which rejects it being disabled, and when the registry is only
+    # reachable privately. The provider sends false when this is unset.
+    vnet_image_pull_enabled = optional(bool, false)
   })
 }
 
@@ -76,6 +81,14 @@ variable "site_config" {
   validation {
     condition     = contains(["1.0", "1.1", "1.2", "1.3"], try(var.site_config.minimum_tls_version, "1.2"))
     error_message = "site_config.minimum_tls_version must be one of: 1.0, 1.1, 1.2, 1.3."
+  }
+
+  validation {
+    condition = (
+      try(var.site_config.health_check_eviction_time_in_min, null) == null
+      || (var.site_config.health_check_eviction_time_in_min >= 2 && var.site_config.health_check_eviction_time_in_min <= 10)
+    )
+    error_message = "site_config.health_check_eviction_time_in_min must be between 2 and 10."
   }
 
   validation {

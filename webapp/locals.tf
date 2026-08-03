@@ -26,6 +26,14 @@ locals {
 
   create_acr_role_assignment = local.use_acr_managed_identity && try(var.acr_config.create_role_assignment, true)
 
+  # azurerm requires health_check_path and health_check_eviction_time_in_min together, so supply
+  # the eviction time whenever a path is set, and suppress it when there is no path to check.
+  health_check_eviction_time_in_min = (
+    var.site_config.health_check_path == null
+    ? null
+    : (var.site_config.health_check_eviction_time_in_min != null ? var.site_config.health_check_eviction_time_in_min : 2)
+  )
+
   # Default the registry to the one in acr_config so the same registry is not named twice. An
   # explicit docker_registry_url still wins, for images pulled from elsewhere.
   docker_registry_url = (

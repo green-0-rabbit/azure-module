@@ -8,6 +8,7 @@ resource "azurerm_linux_web_app" "this" {
   enabled                       = var.app_config.enabled
   public_network_access_enabled = var.app_config.public_network_access_enabled
   virtual_network_subnet_id     = var.app_config.virtual_network_subnet_id
+  vnet_image_pull_enabled       = var.app_config.vnet_image_pull_enabled
 
   # No FTP deployments, so the publishing credential path is closed off too.
   ftp_publish_basic_authentication_enabled = false
@@ -39,7 +40,7 @@ resource "azurerm_linux_web_app" "this" {
     app_command_line                  = var.site_config.app_command_line
     default_documents                 = var.site_config.default_documents
     health_check_path                 = var.site_config.health_check_path
-    health_check_eviction_time_in_min = var.site_config.health_check_eviction_time_in_min
+    health_check_eviction_time_in_min = local.health_check_eviction_time_in_min
     http2_enabled                     = var.site_config.http2_enabled
     load_balancing_mode               = var.site_config.load_balancing_mode
     minimum_tls_version               = var.site_config.minimum_tls_version
