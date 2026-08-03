@@ -47,3 +47,8 @@ output "pricing_tier" {
   description = "Pricing tier reported by Azure for the environment"
   value       = azurerm_app_service_environment_v3.this.pricing_tier
 }
+
+output "diagnostic_setting_id" {
+  description = "Diagnostic setting ID (if enabled)"
+  value       = try(azurerm_monitor_diagnostic_setting.ase_to_law[0].id, null)
+}

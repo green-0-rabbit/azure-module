@@ -64,6 +64,30 @@ variable "cluster_settings" {
   default     = {}
 }
 
+variable "diagnostic_setting" {
+  description = <<-EOT
+    Send the environment's platform logs and metrics to a Log Analytics workspace. Leave null to
+    create no diagnostic setting.
+
+    This covers the environment itself -- scaling, upgrades, health -- and not the traffic of the
+    apps inside it. AppServiceEnvironmentPlatformLogs is the only log category the environment
+    exposes. Application logs (HTTP, console, app) exist only per site, so set diagnostic_setting
+    on the webapp module as well if you want those. This differs from acaenv, where the
+    environment-level categories carry every app's logs.
+  EOT
+  type = object({
+    log_analytics_workspace_id = string
+    log_categories             = optional(list(string), ["AppServiceEnvironmentPlatformLogs"])
+    enable_all_metrics         = optional(bool, true)
+  })
+  default = null
+
+  validation {
+    condition     = var.diagnostic_setting == null || length(var.diagnostic_setting.log_categories) > 0 || var.diagnostic_setting.enable_all_metrics
+    error_message = "diagnostic_setting must enable at least one log category or metrics; Azure rejects a diagnostic setting that collects nothing."
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

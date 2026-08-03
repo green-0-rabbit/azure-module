@@ -19,3 +19,27 @@ resource "azurerm_app_service_environment_v3" "this" {
 
   tags = local.tags
 }
+
+# Environment platform logs only. Application traffic is captured per site, by the diagnostic
+# setting on the webapp module.
+resource "azurerm_monitor_diagnostic_setting" "ase_to_law" {
+  count = var.diagnostic_setting != null ? 1 : 0
+
+  name                       = "diag-${local.resource_name}-law"
+  target_resource_id         = azurerm_app_service_environment_v3.this.id
+  log_analytics_workspace_id = var.diagnostic_setting.log_analytics_workspace_id
+
+  dynamic "enabled_log" {
+    for_each = toset(var.diagnostic_setting.log_categories)
+    content {
+      category = enabled_log.value
+    }
+  }
+
+  dynamic "enabled_metric" {
+    for_each = var.diagnostic_setting.enable_all_metrics ? toset(["AllMetrics"]) : toset([])
+    content {
+      category = enabled_metric.value
+    }
+  }
+}
