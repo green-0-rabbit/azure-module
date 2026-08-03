@@ -11,9 +11,15 @@ variable "subnet_id" {
   type        = string
   description = <<-EOT
     Dedicated subnet for the environment. It must be delegated to Microsoft.Web/hostingEnvironments
-    and hold no other resources. A /24 is recommended; the environment cannot grow past what the
-    subnet can address. The environment takes its region from this subnet, which is why the module
-    has no location input.
+    and hold no other resources.
+
+    Sizing: /27 (32 addresses) is the minimum Azure accepts, /24 (256) is recommended for production,
+    and /23 (512) if you expect to scale near the 200 instance cap with frequent scale operations.
+    Five addresses are reserved for management and the platform uses a further 7 to 27 for
+    supporting infrastructure, so a /27 leaves very little room for App Service plan instances.
+    Changing the subnet after creation requires a support ticket.
+
+    The environment takes its region from this subnet, which is why the module has no location input.
   EOT
 }
 
