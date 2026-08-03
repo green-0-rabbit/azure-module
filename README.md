@@ -10,11 +10,15 @@ Reusable Terraform modules for Azure infrastructure.
 | `acaenv` | Azure Container App Environment |
 | `acr` | Azure Container Registry |
 | `aifoundry` | Azure AI Foundry (OpenAI) |
+| `appserviceenv` | App Service Environment v3 |
+| `appserviceplan` | App Service Plan |
+| `bastion` | Linux bastion VM |
 | `devbox` | Windows 11 Development VM with WSL bootstrap and Bastion |
 | `keyvault` | Azure Key Vault |
 | `pgflexserver` | Azure PostgreSQL Flexible Server |
 | `storageaccount` | Azure Storage Account |
 | `vnet` | Virtual Network with subnets, NSGs, and DNS zone linking |
+| `webapp` | Linux Web App running a container |
 
 ## Using Modules with Git Tags
 
@@ -61,6 +65,12 @@ source = "git::git@github.com:green-0-rabbit/azure-module.git//vnet?ref=v1.0.0"
 
 The `examples/` directory contains ready-to-deploy projects that wire the modules together. All examples are driven through `just` recipes from the repo root.
 
+| Example | What it deploys |
+|---------|-----------------|
+| `aca-simple` | Container Apps environment with two apps and rule-based routing |
+| `todo-api` | Full stack: Container App, Postgres, Key Vault, storage, AI Foundry, DevBox |
+| `webapp-simple` | Web app on an Isolated v2 plan inside an internal App Service Environment. **Expensive** — see its README |
+
 ### 1. Clone and enter the repository
 
 ```bash
@@ -77,21 +87,13 @@ az account set --subscription <SUBSCRIPTION_ID>
 
 ### 3. Review the variables file
 
-Each example ships a `dev.tfvars` with sensible defaults. Open it and adjust values to match your environment:
+Each example ships a `dev.tfvars`. Open it and adjust values to match your environment:
 
 ```bash
-$EDITOR examples/todo-api/dev.tfvars
+$EDITOR examples/<example>/dev.tfvars
 ```
 
-Key values to review:
-
-| Variable | Description |
-|----------|-------------|
-| `resource_group_name` | Resource group that will be created |
-| `acr_name` | Existing Azure Container Registry name |
-| `acr_resource_group_name` | Resource group of the ACR |
-| `spoke_vnet_address_space` | VNet CIDR (avoid collisions with existing networks) |
-| `windows_devbox_custom_image_id` | Custom VM image (set to `null` for marketplace default) |
+Names that must be globally unique across Azure — `acr_name`, `key_vault_name`, `storage_account_name` — will collide as shipped and have to be changed. Check `spoke_vnet_address_space` against your existing networks.
 
 ### 4. Initialize, plan, and apply
 
