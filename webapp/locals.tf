@@ -26,6 +26,16 @@ locals {
 
   create_acr_role_assignment = local.use_acr_managed_identity && try(var.acr_config.create_role_assignment, true)
 
+  # App Service resolves a setting shaped like @Microsoft.KeyVault(SecretUri=...) against Key Vault
+  # at runtime, using key_vault_reference_identity_id. Build the reference here so callers pass a
+  # plain secret URI rather than hand-writing the wrapper.
+  key_vault_app_settings = {
+    for setting_name, secret_uri in var.key_vault_secrets :
+    setting_name => "@Microsoft.KeyVault(SecretUri=${secret_uri})"
+  }
+
+  app_settings = merge(var.app_settings, local.key_vault_app_settings)
+
   # azurerm requires health_check_path and health_check_eviction_time_in_min together, so supply
   # the eviction time whenever a path is set, and suppress it when there is no path to check.
   health_check_eviction_time_in_min = (

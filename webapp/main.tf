@@ -13,7 +13,7 @@ resource "azurerm_linux_web_app" "this" {
   # No FTP deployments, so the publishing credential path is closed off too.
   ftp_publish_basic_authentication_enabled = false
 
-  app_settings = var.app_settings
+  app_settings = local.app_settings
 
   # https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/manage-user-assigned-managed-identities-azure-portal
   identity {
