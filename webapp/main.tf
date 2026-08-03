@@ -108,3 +108,26 @@ resource "azurerm_linux_web_app" "this" {
     }
   }
 }
+
+# https://learn.microsoft.com/en-us/azure/app-service/troubleshoot-diagnostic-logs
+resource "azurerm_monitor_diagnostic_setting" "webapp_to_law" {
+  count = var.diagnostic_setting != null ? 1 : 0
+
+  name                       = "diag-${local.resource_name}-law"
+  target_resource_id         = azurerm_linux_web_app.this.id
+  log_analytics_workspace_id = var.diagnostic_setting.log_analytics_workspace_id
+
+  dynamic "enabled_log" {
+    for_each = toset(var.diagnostic_setting.log_categories)
+    content {
+      category = enabled_log.value
+    }
+  }
+
+  dynamic "enabled_metric" {
+    for_each = var.diagnostic_setting.enable_all_metrics ? toset(["AllMetrics"]) : toset([])
+    content {
+      category = enabled_metric.value
+    }
+  }
+}

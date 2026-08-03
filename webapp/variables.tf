@@ -207,6 +207,36 @@ variable "dns" {
   }
 }
 
+variable "diagnostic_setting" {
+  description = <<-EOT
+    Send the app's logs and metrics to a Log Analytics workspace. Leave null to create no
+    diagnostic setting.
+
+    log_categories defaults to the categories a Linux container app produces. The audit categories
+    that only apply to Windows or to file-level auditing are left out. Azure rejects a category the
+    resource does not support, so confirm with
+    `az monitor diagnostic-settings categories list --resource <app id>` before adding to the list.
+  EOT
+  type = object({
+    log_analytics_workspace_id = string
+    log_categories = optional(list(string), [
+      "AppServiceHTTPLogs",
+      "AppServiceConsoleLogs",
+      "AppServiceAppLogs",
+      "AppServicePlatformLogs",
+      "AppServiceAuditLogs",
+      "AppServiceIPSecAuditLogs",
+    ])
+    enable_all_metrics = optional(bool, true)
+  })
+  default = null
+
+  validation {
+    condition     = var.diagnostic_setting == null || length(var.diagnostic_setting.log_categories) > 0 || var.diagnostic_setting.enable_all_metrics
+    error_message = "diagnostic_setting must enable at least one log category or metrics; Azure rejects a diagnostic setting that collects nothing."
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

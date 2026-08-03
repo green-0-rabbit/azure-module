@@ -56,3 +56,8 @@ output "private_endpoint_ip" {
     null
   )
 }
+
+output "diagnostic_setting_id" {
+  description = "Diagnostic setting ID (if enabled)"
+  value       = try(azurerm_monitor_diagnostic_setting.webapp_to_law[0].id, null)
+}
