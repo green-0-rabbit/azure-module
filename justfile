@@ -81,4 +81,14 @@ vm-exec-example example_dir +command: require-env
     fi
 
     echo "Running on $IP..."
-    sshpass -p "$TF_VAR_admin_password" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 bastionadmin@$IP "{{command}}"
+    # UserKnownHostsFile=/dev/null matters as much as StrictHostKeyChecking here. Bastion VMs are
+    # recreated on the same public IP, and when a recorded host key changes ssh silently disables
+    # password authentication as MITM protection. That surfaces as
+    # "Permission denied (publickey,password)", which reads like a wrong password rather than a
+    # stale known_hosts entry. Not recording the key at all avoids the trap.
+    sshpass -p "$TF_VAR_admin_password" ssh \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        -o LogLevel=ERROR \
+        -o ConnectTimeout=5 \
+        bastionadmin@$IP "{{command}}"
