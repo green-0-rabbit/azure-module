@@ -30,9 +30,12 @@ Example recipes use `dev.tfvars` automatically and accept trailing arguments:
 glb-var dev && just tf-plan-ex webapp-simple
 ```
 
-Without it the recipes fail in `ensure-env` with exit 127. The recipes need `ARM_SUBSCRIPTION_ID`
-and `TF_VAR_admin_password`, which live in `examples/.env` (git-ignored, created by
-`scripts/setup-env.sh`).
+The recipes read everything from the shell environment — nothing is sourced from a file. They need
+at least `ARM_SUBSCRIPTION_ID` and `TF_VAR_admin_password`; `require-env` stops with instructions
+if either is missing, rather than failing later inside Terraform or SSH.
+
+Because `glb-var` is a shell function and shell state does not persist between commands, chaining
+it with `&&` is required — running it as a separate step has no effect on the recipe.
 
 ### Running commands on the bastion VM
 
