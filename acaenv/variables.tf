@@ -61,8 +61,8 @@ variable "certificate_config" {
     Configuration for the Container App Environment Certificate. Supply the certificate either
     inline (certificate_blob_base64) or from Key Vault (key_vault_secret_id), never both.
     The Key Vault path reads the secret through the environment's system-assigned identity,
-    which must already hold "Key Vault Secrets User" on the vault. Granting that role is the
-    caller's responsibility; this module does not create the role assignment.
+    which needs "Key Vault Secrets User" on the vault. Pass kv_config to have this module
+    create that role assignment.
   EOT
   type = object({
     name                    = string
@@ -79,6 +79,15 @@ variable "certificate_config" {
     )
     error_message = "certificate_config must set exactly one of certificate_blob_base64 or key_vault_secret_id."
   }
+}
+
+variable "kv_config" {
+  description = "Configuration for Key Vault integration, including Key Vault Resource ID and whether to create Key Vault Secrets User role assignment for the environment identity."
+  type = object({
+    kv_id                  = string
+    create_role_assignment = optional(bool, true)
+  })
+  default = null
 }
 
 variable "http_route_configs" {

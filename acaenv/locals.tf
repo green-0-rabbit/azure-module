@@ -11,6 +11,8 @@ locals {
 
   certificate_from_key_vault = var.certificate_config != null && try(var.certificate_config.key_vault_secret_id, null) != null
 
+  enable_kv_secret_role_assignment = var.kv_config != null && try(var.kv_config.create_role_assignment, true)
+
   networking = var.networking != null ? var.networking : {
     subnet_id                    = ""
     static_ip_address_allocation = false
