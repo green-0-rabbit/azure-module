@@ -5,8 +5,11 @@ resource "azurerm_user_assigned_identity" "webapp_identity" {
   tags                = local.tags
 }
 
+# count must not depend on acr_id: callers pass module.acr.id, which is unknown until apply, and
+# Terraform cannot size a count from an unknown value. Whether acr_id is required is enforced by
+# the validation on var.acr_config instead.
 resource "azurerm_role_assignment" "acr_pull_uai" {
-  count                = var.acr_config != null && try(var.acr_config.create_role_assignment, true) && try(var.acr_config.use_managed_identity, true) && try(var.acr_config.acr_id, null) != null ? 1 : 0
+  count                = local.create_acr_role_assignment ? 1 : 0
   scope                = var.acr_config.acr_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.webapp_identity.principal_id

@@ -1,5 +1,5 @@
 locals {
-  resource_name = "${lower(var.name)}-${var.env}"
+  resource_name = "${lower(var.app_config.name)}-${var.env}"
 
   tags = merge({ "ResourceName" = local.resource_name }, var.tags)
 
@@ -23,4 +23,14 @@ locals {
   # Pulling images from ACR with the app's identity needs both the flag and the client id, so
   # derive them together rather than making the caller keep the two in sync.
   use_acr_managed_identity = var.acr_config != null && try(var.acr_config.use_managed_identity, true)
+
+  create_acr_role_assignment = local.use_acr_managed_identity && try(var.acr_config.create_role_assignment, true)
+
+  # Default the registry to the one in acr_config so the same registry is not named twice. An
+  # explicit docker_registry_url still wins, for images pulled from elsewhere.
+  docker_registry_url = (
+    try(var.site_config.application_stack.docker_registry_url, null) != null
+    ? var.site_config.application_stack.docker_registry_url
+    : (var.acr_config != null ? "https://${var.acr_config.registry_fqdn}" : null)
+  )
 }

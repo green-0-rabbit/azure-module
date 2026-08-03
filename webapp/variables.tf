@@ -1,9 +1,20 @@
-variable "env" { type = string }
-
-variable "name" {
-  type        = string
-  description = "Name of the web app. Used verbatim as the resource name and must be globally unique."
+variable "app_config" {
+  description = <<-EOT
+    Core configuration for the web app. The resource is named "<name>-<env>", which must be
+    globally unique across Azure. virtual_network_subnet_id enables regional VNet integration for
+    outbound traffic and must be delegated to Microsoft.Web/serverFarms.
+  EOT
+  type = object({
+    name                          = string
+    service_plan_id               = string
+    https_only                    = optional(bool, true)
+    enabled                       = optional(bool, true)
+    public_network_access_enabled = optional(bool, false)
+    virtual_network_subnet_id     = optional(string)
+  })
 }
+
+variable "env" { type = string }
 
 variable "location" {
   type        = string
@@ -12,35 +23,6 @@ variable "location" {
 
 variable "resource_group_name" { type = string }
 
-variable "service_plan_id" {
-  type        = string
-  description = "Resource ID of the App Service Plan hosting this app. Pass appserviceplan.id."
-}
-
-variable "https_only" {
-  type        = bool
-  description = "Redirect all HTTP traffic to HTTPS."
-  default     = true
-}
-
-variable "enabled" {
-  type        = bool
-  description = "Whether the app is running."
-  default     = true
-}
-
-variable "public_network_access_enabled" {
-  type        = bool
-  description = "Allow access from public networks. Leave false when fronting the app with a private endpoint."
-  default     = false
-}
-
-variable "virtual_network_subnet_id" {
-  type        = string
-  description = "Subnet for regional VNet integration, used for the app's outbound traffic. Must be delegated to Microsoft.Web/serverFarms."
-  default     = null
-}
-
 variable "app_settings" {
   type        = map(string)
   description = "Application settings exposed to the app as environment variables."
@@ -48,33 +30,12 @@ variable "app_settings" {
   sensitive   = true
 }
 
-variable "connection_strings" {
-  description = "Connection strings, keyed by name."
-  type = map(object({
-    type  = string
-    value = string
-  }))
-  default   = {}
-  sensitive = true
-
-  validation {
-    condition = alltrue([
-      for connection_string in values(var.connection_strings) : contains([
-        "APIHub", "Custom", "DocDb", "EventHub", "MySQL", "NotificationHub",
-        "PostgreSQL", "RedisCache", "ServiceBus", "SQLAzure", "SQLServer",
-      ], connection_string.type)
-    ])
-    error_message = "connection_strings type must be one of: APIHub, Custom, DocDb, EventHub, MySQL, NotificationHub, PostgreSQL, RedisCache, ServiceBus, SQLAzure, SQLServer."
-  }
-}
-
 variable "site_config" {
-  description = "Site configuration for the app. application_stack selects the runtime; set docker_image_name to run a container."
+  description = "Site configuration for the app. application_stack.docker_image_name names the container image to run."
   type = object({
     always_on                         = optional(bool, true)
     app_command_line                  = optional(string)
     default_documents                 = optional(list(string))
-    ftps_state                        = optional(string, "Disabled")
     health_check_path                 = optional(string)
     health_check_eviction_time_in_min = optional(number)
     http2_enabled                     = optional(bool, true)
@@ -86,19 +47,13 @@ variable "site_config" {
     worker_count                      = optional(number)
     ip_restriction_default_action     = optional(string, "Allow")
 
+    # This module deploys containers only. docker_registry_url defaults to the registry in
+    # acr_config, so it only needs setting when pulling from somewhere other than that registry.
     application_stack = optional(object({
-      docker_image_name        = optional(string)
+      docker_image_name        = string
       docker_registry_url      = optional(string)
       docker_registry_username = optional(string)
       docker_registry_password = optional(string)
-      dotnet_version           = optional(string)
-      go_version               = optional(string)
-      java_server              = optional(string)
-      java_server_version      = optional(string)
-      java_version             = optional(string)
-      node_version             = optional(string)
-      php_version              = optional(string)
-      python_version           = optional(string)
     }))
 
     cors = optional(object({
@@ -119,11 +74,6 @@ variable "site_config" {
   default = {}
 
   validation {
-    condition     = contains(["Disabled", "FtpsOnly", "AllAllowed"], try(var.site_config.ftps_state, "Disabled"))
-    error_message = "site_config.ftps_state must be one of: Disabled, FtpsOnly, AllAllowed."
-  }
-
-  validation {
     condition     = contains(["1.0", "1.1", "1.2", "1.3"], try(var.site_config.minimum_tls_version, "1.2"))
     error_message = "site_config.minimum_tls_version must be one of: 1.0, 1.1, 1.2, 1.3."
   }
@@ -141,10 +91,9 @@ variable "site_config" {
 }
 
 variable "sticky_settings" {
-  description = "App setting and connection string names that stay with a slot rather than swapping with it."
+  description = "App setting names that stay with a slot rather than swapping with it."
   type = object({
-    app_setting_names       = optional(list(string))
-    connection_string_names = optional(list(string))
+    app_setting_names = optional(list(string))
   })
   default = null
 }
@@ -158,6 +107,14 @@ variable "acr_config" {
     use_managed_identity   = optional(bool, true)
   })
   default = null
+
+  validation {
+    condition = var.acr_config == null || (
+      !(try(var.acr_config.use_managed_identity, true) && try(var.acr_config.create_role_assignment, true))
+      || try(var.acr_config.acr_id, null) != null
+    )
+    error_message = "acr_config.acr_id is required when use_managed_identity and create_role_assignment are both true, since the module creates the AcrPull assignment against it."
+  }
 }
 
 variable "kv_config" {

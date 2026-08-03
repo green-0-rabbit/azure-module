@@ -23,19 +23,24 @@ output "possible_outbound_ip_addresses" {
   value       = azurerm_linux_web_app.this.possible_outbound_ip_address_list
 }
 
-output "identity_id" {
-  description = "Resource ID of the user assigned identity attached to the app"
-  value       = azurerm_user_assigned_identity.webapp_identity.id
-}
-
-output "identity_principal_id" {
-  description = "Principal ID of the user assigned identity, for role assignments made outside this module"
+output "principal_id" {
+  description = "The Principal ID of the module-managed User Assigned Identity."
   value       = azurerm_user_assigned_identity.webapp_identity.principal_id
 }
 
+output "identity_name" {
+  description = "The name of the module-managed User Assigned Identity."
+  value       = azurerm_user_assigned_identity.webapp_identity.name
+}
+
 output "identity_client_id" {
-  description = "Client ID of the user assigned identity"
+  description = "The client ID of the module-managed User Assigned Identity."
   value       = azurerm_user_assigned_identity.webapp_identity.client_id
+}
+
+output "identity_id" {
+  description = "The resource ID of the module-managed User Assigned Identity."
+  value       = azurerm_user_assigned_identity.webapp_identity.id
 }
 
 output "private_endpoint_id" {
