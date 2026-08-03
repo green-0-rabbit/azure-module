@@ -92,4 +92,19 @@ resource "azurerm_linux_web_app" "this" {
   depends_on = [
     azurerm_role_assignment.acr_pull_uai
   ]
+
+  lifecycle {
+    precondition {
+      condition     = length(var.key_vault_secrets) == 0 || var.kv_config != null
+      error_message = "kv_config is required when key_vault_secrets is set: the secrets are read from that vault, and the app identity needs Key Vault Secrets User on it."
+    }
+
+    precondition {
+      condition = var.kv_config == null || alltrue([
+        for secret_id in values(var.key_vault_secrets) :
+        can(regex("^https://${local.kv_vault_name}\\.", secret_id))
+      ])
+      error_message = "Every key_vault_secrets id must point at the vault named in kv_config. A secret id for a different vault would resolve only if that vault also granted the app identity access."
+    }
+  }
 }

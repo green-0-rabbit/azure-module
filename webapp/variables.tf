@@ -38,15 +38,16 @@ variable "app_settings" {
 variable "key_vault_secrets" {
   description = <<-EOT
     App settings whose values are fetched from Key Vault at runtime, keyed by app setting name
-    with the Key Vault secret URI as the value. The module wraps each one in
-    @Microsoft.KeyVault(SecretUri=...), which App Service resolves through the identity in
-    key_vault_reference_identity_id -- the identity this module creates.
+    with the Key Vault secret id as the value. Secrets are always read from the vault in kv_config,
+    which is required when this is set and is checked against each id.
 
-    That identity needs "Key Vault Secrets User" on the vault. Pass kv_config to have the module
-    create that role assignment, or grant it yourself.
+    The module wraps each id in @Microsoft.KeyVault(SecretUri=...), which App Service resolves
+    through the identity in key_vault_reference_identity_id -- the identity this module creates.
+    kv_config also grants that identity "Key Vault Secrets User" on the vault.
 
-    Leave the version off the URI (.../secrets/name rather than .../secrets/name/version) so the
-    app picks up rotations without a redeploy.
+    Leave the version off the id (.../secrets/name rather than .../secrets/name/version) so
+    rotations are picked up. App Service caches resolved references, so a rotation takes effect
+    within 24 hours, or immediately on the next app configuration change.
 
     A key here overrides the same key in app_settings.
   EOT
@@ -55,9 +56,9 @@ variable "key_vault_secrets" {
 
   validation {
     condition = alltrue([
-      for secret_uri in values(var.key_vault_secrets) : can(regex("^https://[^/]+/secrets/[^/]+", secret_uri))
+      for secret_id in values(var.key_vault_secrets) : can(regex("^https://[^/]+/secrets/[^/]+", secret_id))
     ])
-    error_message = "Each key_vault_secrets value must be a Key Vault secret URI, for example https://my-vault.vault.azure.net/secrets/my-secret."
+    error_message = "Each key_vault_secrets value must be a Key Vault secret id, for example https://my-vault.vault.azure.net/secrets/my-secret."
   }
 }
 

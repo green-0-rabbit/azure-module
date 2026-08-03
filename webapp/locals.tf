@@ -26,6 +26,10 @@ locals {
 
   create_acr_role_assignment = local.use_acr_managed_identity && try(var.acr_config.create_role_assignment, true)
 
+  # Vault name from the resource id in kv_config, used to check that every secret id belongs to
+  # that vault rather than some other one.
+  kv_vault_name = var.kv_config != null ? reverse(split("/", var.kv_config.kv_id))[0] : null
+
   # App Service resolves a setting shaped like @Microsoft.KeyVault(SecretUri=...) against Key Vault
   # at runtime, using key_vault_reference_identity_id. Build the reference here so callers pass a
   # plain secret URI rather than hand-writing the wrapper.
