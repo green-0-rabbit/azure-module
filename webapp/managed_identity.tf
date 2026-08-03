@@ -1,0 +1,23 @@
+resource "azurerm_user_assigned_identity" "webapp_identity" {
+  name                = "uai-${local.resource_name}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  tags                = local.tags
+}
+
+# count must not depend on acr_id: callers pass module.acr.id, which is unknown until apply, and
+# Terraform cannot size a count from an unknown value. Whether acr_id is required is enforced by
+# the validation on var.acr_config instead.
+resource "azurerm_role_assignment" "acr_pull_uai" {
+  count                = local.create_acr_role_assignment ? 1 : 0
+  scope                = var.acr_config.acr_id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.webapp_identity.principal_id
+}
+
+resource "azurerm_role_assignment" "kv_pull_uai" {
+  count                = var.kv_config != null && try(var.kv_config.create_role_assignment, true) ? 1 : 0
+  scope                = var.kv_config.kv_id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.webapp_identity.principal_id
+}
