@@ -109,7 +109,15 @@ just tf-apply-ex todo-api
 just tf-destroy-ex todo-api
 ```
 
-On the first run, you will be prompted to enter an `admin_password`. The value is saved to `examples/.env` (git-ignored) and reused on subsequent runs.
+The example recipes read their configuration from the shell environment, so load it first in the
+same shell:
+
+```bash
+glb-var dev && just tf-plan-ex todo-api
+```
+
+They need at least `ARM_SUBSCRIPTION_ID` and `TF_VAR_admin_password`. If either is missing the
+recipe stops immediately and says so, rather than failing later inside Terraform.
 
 ### Passing extra arguments
 
