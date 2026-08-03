@@ -6,6 +6,14 @@ resource "azurerm_private_dns_zone" "acr" {
   tags = var.tags
 }
 
+# Private DNS zone for the Key Vault private endpoint.
+resource "azurerm_private_dns_zone" "keyvault" {
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = azurerm_resource_group.rg.name
+
+  tags = var.tags
+}
+
 # An internal App Service Environment is only resolvable through a private DNS zone named after
 # its DNS suffix. Azure does not create that zone, so it is created here.
 #

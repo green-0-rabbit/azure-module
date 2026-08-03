@@ -23,6 +23,17 @@ variable "ase_domain_suffix" {
   default     = "appserviceenvironment.net"
 }
 
+variable "key_vault_name" {
+  type        = string
+  description = "Key Vault name. Globally unique, 3-24 alphanumeric characters and hyphens."
+}
+
+variable "demo_secret_name" {
+  type        = string
+  description = "Name of the secret the app reads through a Key Vault reference."
+  default     = "demo-secret"
+}
+
 variable "acr_name" {
   type        = string
   description = "ACR name. Globally unique, 5-50 alphanumeric characters."

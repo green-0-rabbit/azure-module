@@ -23,6 +23,11 @@ output "webapp_url" {
   value       = "https://${module.hello_world.default_hostname}"
 }
 
+output "key_vault_uri" {
+  description = "Key Vault the app resolves its DEMO_SECRET reference from"
+  value       = module.keyvault.vault_uri
+}
+
 output "webapp_principal_id" {
   description = "Principal ID of the app identity holding AcrPull on the registry"
   value       = module.hello_world.principal_id

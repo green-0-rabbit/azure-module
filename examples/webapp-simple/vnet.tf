@@ -12,6 +12,7 @@ module "vnet_spoke" {
   private_dns_zone_names = [
     azurerm_private_dns_zone.acr.name,
     azurerm_private_dns_zone.ase.name,
+    azurerm_private_dns_zone.keyvault.name,
   ]
 
   subnets = var.spoke_vnet_subnets

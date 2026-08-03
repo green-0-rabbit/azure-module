@@ -3,7 +3,8 @@ project  = "webapp-simple"
 env      = "preview"
 
 # Must be globally unique across Azure. Change before applying.
-acr_name = "webappsimplepreviewacr"
+acr_name       = "webappsimplepreviewacr"
+key_vault_name = "kv-webapp-simple-prev"
 
 hello_world_image = "hello-world:latest"
 app_port          = "80"
