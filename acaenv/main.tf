@@ -19,15 +19,26 @@ resource "azurerm_container_app_environment" "this" {
     maximum_count         = var.workload_profile.workload_profile_type == "Consumption" ? null : var.workload_profile.maximum_count
   }
 
-  tags = var.tags
+  tags = local.tags
 }
 
 resource "azurerm_container_app_environment_certificate" "this" {
   count                        = var.certificate_config != null ? 1 : 0
   name                         = var.certificate_config.name
   container_app_environment_id = azurerm_container_app_environment.this.id
-  certificate_blob_base64      = var.certificate_config.certificate_blob_base64
-  certificate_password         = var.certificate_config.certificate_password
+
+  # Inline and Key Vault sourced certificates are mutually exclusive; variable validation enforces it.
+  certificate_blob_base64 = local.certificate_from_key_vault ? null : var.certificate_config.certificate_blob_base64
+  certificate_password    = local.certificate_from_key_vault ? null : var.certificate_config.certificate_password
+
+  dynamic "certificate_key_vault" {
+    for_each = local.certificate_from_key_vault ? [1] : []
+    content {
+      key_vault_secret_id = var.certificate_config.key_vault_secret_id
+    }
+  }
+
+  tags = merge(local.tags, { ca-name = lower("acaenv-cert-${local.resource_name}") })
 }
 
 # https://learn.microsoft.com/en-us/azure/container-apps/log-options
