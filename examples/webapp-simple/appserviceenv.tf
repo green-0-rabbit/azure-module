@@ -18,7 +18,17 @@ module "app_service_environment" {
   # Microsoft.Web/hostingEnvironments and hold nothing else.
   subnet_id = module.vnet_spoke.subnet_ids["AseSubnet"]
 
-  # Internal load balancer: the environment and every app in it stay inside the VNet.
+  # Internal load balancer: the environment and every app in it stay inside the VNet. This is how
+  # an environment is made private; a private endpoint cannot target one. Azure rejects it with
+  # "Private Link for ASE is invalid. If this is an ASEv3, private endpoints can still be added to
+  # individual apps within the ASEv3." That is the structural difference from acaenv, which does
+  # take a private endpoint on the environment itself.
+  #
+  # Consequences, if this grows past one app: App Service has no environment-level router, so
+  # there is no equivalent of acaenv's http_route_configs for path matching, rewrites or weighted
+  # targets across apps. And each app would need its own private endpoint. A private Application
+  # Gateway or API Management in front of the environment solves both: it supplies the routing
+  # rules, and collapses ingress to a single private entry point for every app behind it.
   internal_load_balancing_mode = "Web, Publishing"
 
   tags = var.tags

@@ -78,6 +78,38 @@ just vm-exec-example webapp-simple "getent hosts $(terraform -chdir=examples/web
 just tf-destroy-ex webapp-simple
 ```
 
+## Scaling this past one app: you will want a gateway
+
+This example runs a single app, reached at its own hostname on the environment's internal load
+balancer. Two limits show up as soon as you add a second app, and a private Application Gateway or
+API Management in front of the environment addresses both.
+
+**There is no environment-level routing.** App Service has no equivalent of the `acaenv` module's
+`http_route_configs`, which matches on path prefix, rewrites paths, and splits traffic across
+several container apps inside one environment. On App Service that layer does not exist at the
+plan or environment level, so routing `/api` to one app and `/frontend` to another has to come from
+a reverse proxy you deploy yourself.
+
+**Ingress does not collapse on its own.** A private endpoint cannot target the environment. Azure
+rejects it outright:
+
+```
+Private Link for ASE is invalid. If this is an ASEv3, private endpoints
+can still be added to individual apps within the ASEv3.
+```
+
+So the per-app endpoint is the only granularity available, and every app you add is another
+endpoint and another record. A gateway inside the VNet gives you one private frontend for all of
+them.
+
+This is the structural difference from `acaenv`, which takes a private endpoint on the environment
+itself because a Container Apps environment is Microsoft-managed infrastructure outside your VNet.
+An App Service Environment is already deployed inside your subnet, so there is nothing to private
+link to — `internal_load_balancing_mode` is what makes it private instead.
+
+Note that the gateway itself is not free or trivial: it needs its own subnet, its own certificates
+for TLS termination, and its own scaling story.
+
 ## Notes
 
 - The App Service Environment takes its region from `AseSubnet`, which is why the module has no
