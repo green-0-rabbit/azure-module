@@ -149,6 +149,14 @@ variable "acr_config" {
     password_secret_name   = optional(string)
   })
   default = null
+
+  validation {
+    condition = var.acr_config == null || (
+      !(try(var.acr_config.use_managed_identity, true) && try(var.acr_config.create_role_assignment, true))
+      || try(var.acr_config.acr_id, null) != null
+    )
+    error_message = "acr_config.acr_id is required when use_managed_identity and create_role_assignment are both true, since the module creates the AcrPull assignment against it. Set create_role_assignment = false if the assignment is managed elsewhere."
+  }
 }
 
 variable "kv_config" {
