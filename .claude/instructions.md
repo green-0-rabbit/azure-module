@@ -36,4 +36,4 @@ This repository is module-focused. Terraform operations must be executed through
 
 - If initialization is required before validation, run `tf-init` first for the same target.
 - Keep commands scoped to the requested target module.
-- The example recipes depend on `examples/.env` which holds `ARM_SUBSCRIPTION_ID` and `TF_VAR_admin_password`. If the file is missing, the user is prompted automatically via `devbox/scripts/setup-env.sh`.
+- The example recipes read `ARM_SUBSCRIPTION_ID` and `TF_VAR_admin_password` from the shell environment. Load them with `glb-var dev` in the same shell invocation as the recipe; the recipes fail fast with a clear message if either is unset.
