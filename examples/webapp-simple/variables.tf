@@ -110,6 +110,20 @@ variable "spoke_vnet_subnets" {
   }))
 }
 
+variable "dns_consumer_vnet_ids" {
+  description = <<-EOT
+    Additional virtual networks that should resolve apps in this environment, keyed by a short
+    name. Apps are reached over the environment's internal load balancer, which serves any network
+    connected to this one -- peered VNets, VPN, ExpressRoute -- but only once that network can
+    resolve the environment's DNS zone. Peering alone is not enough.
+
+    Keyed by name rather than a plain list because each link is created with for_each, whose keys
+    must be known at plan time. The values may come from another module's output.
+  EOT
+  type        = map(string)
+  default     = {}
+}
+
 variable "admin_username" {
   type        = string
   description = "Admin username for the bastion VM used to reach the private app."

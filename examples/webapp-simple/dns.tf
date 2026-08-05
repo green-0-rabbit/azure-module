@@ -66,3 +66,17 @@ resource "azurerm_private_dns_a_record" "ase_root" {
   ttl                 = 300
   records             = [local.ase_ilb_ip]
 }
+
+# Extends app resolution to networks outside this VNet. The ILB serves any connected network, but
+# only if that network can resolve the environment's zone, so a peered VNet needs its own link.
+resource "azurerm_private_dns_zone_virtual_network_link" "ase_consumers" {
+  for_each = var.dns_consumer_vnet_ids
+
+  name                  = "ase-link-to-${each.key}"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.ase.name
+  virtual_network_id    = each.value
+  registration_enabled  = false
+
+  tags = var.tags
+}

@@ -78,6 +78,31 @@ just vm-exec-example webapp-simple "getent hosts $(terraform -chdir=examples/web
 just tf-destroy-ex webapp-simple
 ```
 
+## Reaching the app from elsewhere
+
+Every app in the environment answers on the same internal load balancer address, and the platform
+picks the app from the `Host` header. `terraform output ase_ilb_ip` shows it. Apps are reachable
+from the environment's own VNet and from any network connected to it, but only where DNS resolves.
+
+| Client | What it needs |
+|---|---|
+| This VNet | nothing — the bastion works out of the box |
+| Peered VNet | the peering, plus an entry in `dns_consumer_vnet_ids` |
+| On-premises over VPN or ExpressRoute | routing, plus a conditional forwarder for the zone to `168.63.129.16` |
+
+Peering on its own is not enough: without a DNS link the name does not resolve, and nothing reaches
+the ILB. `dns_consumer_vnet_ids` adds a link per network:
+
+```hcl
+dns_consumer_vnet_ids = {
+  hub = "/subscriptions/.../virtualNetworks/hub-vnet"
+}
+```
+
+Note the deployment endpoints sit behind the same address, so internet-hosted CI (GitHub Actions,
+Azure DevOps hosted agents) cannot publish to this environment. That needs a self-hosted agent
+inside the VNet.
+
 ## Scaling this past one app: you will want a gateway
 
 This example runs a single app, reached at its own hostname on the environment's internal load
